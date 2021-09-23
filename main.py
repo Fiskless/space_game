@@ -1,4 +1,5 @@
 import random
+import statistics
 import time
 import asyncio
 import curses
@@ -12,7 +13,7 @@ def draw(canvas):
     canvas.nodelay(True)
     height, width = canvas.getmaxyx()
     star_symbols = ["+", "*", ".", ":"]
-    cannon_shot = fire(canvas, height/2, width/2)
+    cannon_shot = fire(canvas, height/2+1, width/2+1)
     spaceship = animate_spaceship(
         canvas,
         height/2,
@@ -39,18 +40,25 @@ def draw(canvas):
 
 async def animate_spaceship(canvas, row, column):
 
-    rocket_frames = [rocket_frame_1, rocket_frame_1]
+    row_max, column_max = canvas.getmaxyx()
+    spaceship_row, spaceship_column = get_frame_size(rocket_frame_1)
+    rocket_frames = [rocket_frame_1, rocket_frame_2]
+    current_coordinates = [row, column]
     for rocket_frame in cycle(rocket_frames):
-        draw_frame(canvas, row, column, rocket_frame, negative=True)
+        rows_direction, columns_direction, _ = read_controls(canvas)
+        current_row = current_coordinates[0] + rows_direction
+        current_column = current_coordinates[1] + columns_direction
+        if current_row+spaceship_row >= row_max \
+                or current_column+spaceship_column-1 >= column_max \
+                or current_row+1 <= 0 \
+                or current_column+1 <= 0:
+            current_row = current_coordinates[0]
+            current_column = current_coordinates[1]
+        draw_frame(canvas, current_row, current_column, rocket_frame)
         await asyncio.sleep(0)
-
-
-    # for rocket_number, rocket_frame in cycle(enumerate(rocket_frames, start=1)):
-    #     if rocket_number % 2 == 0:
-    #         draw_frame(canvas, row, column, rocket_frame)
-    #     else:
-    #         draw_frame(canvas, row, column, rocket_frame)
-    #     await asyncio.sleep(0)
+        draw_frame(canvas, current_row, current_column, rocket_frame, negative=True)
+        current_coordinates[0] = current_row
+        current_coordinates[1] = current_column
 
 
 def draw_frame(canvas, start_row, start_column, text, negative=False):
@@ -174,6 +182,15 @@ async def blink(canvas, row, column, time_delay, symbol='*'):
         await asyncio.sleep(0)
 
 
+def get_frame_size(text):
+    """Calculate size of multiline text fragment, return pair — number of rows and colums."""
+
+    lines = text.splitlines()
+    rows = len(lines)
+    columns = max([len(line) for line in lines])
+    return rows, columns
+
+
 if __name__ == '__main__':
     SPACE_KEY_CODE = 32
     LEFT_KEY_CODE = 260
@@ -182,7 +199,7 @@ if __name__ == '__main__':
     DOWN_KEY_CODE = 258
 
     TIC_TIMEOUT = 0.1
-    STARS_COUNT = 100
+    STARS_COUNT = 10
 
     with open("animation_frames/rocket_frame_1.txt", "r") as file:
         rocket_frame_1 = file.read()
