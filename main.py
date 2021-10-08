@@ -40,7 +40,6 @@ def draw(canvas):
         coroutines.append(blink(canvas, row, column, time_delay, symbol))
 
     while True:
-
         for coroutine in coroutines:
             try:
                 coroutine.send(None)
@@ -59,28 +58,22 @@ async def animate_spaceship(canvas, row, column):
 
     row_max, column_max = canvas.getmaxyx()
     spaceship_row, spaceship_column = get_frame_size(rocket_frame_1)
-    rocket_frames = [rocket_frame_1, rocket_frame_2]
+    rocket_frames = [rocket_frame_1, rocket_frame_1, rocket_frame_2, rocket_frame_2]
     current_coordinates = [row, column]
-    # new_row, new_column = [row, column]
     for rocket_frame in cycle(rocket_frames):
         rows_direction, columns_direction, _ = read_controls(canvas)
-        # current_row = new_row + rows_direction
-        # current_column = new_column + columns_direction
         current_row = current_coordinates[0] + rows_direction
         current_column = current_coordinates[1] + columns_direction
         if current_row+spaceship_row >= row_max \
                 or current_column+spaceship_column-1 >= column_max \
                 or current_row+1 <= 0 \
                 or current_column+1 <= 0:
-            current_coordinates = [current_row, current_column]
-            # current_row = current_coordinates[0]
-            # current_column = current_coordinates[1]
+            current_row, current_column = current_coordinates
         draw_frame(canvas, current_row, current_column, rocket_frame)
         await asyncio.sleep(0)
         draw_frame(canvas, current_row, current_column, rocket_frame, negative=True)
         current_coordinates = [current_row, current_column]
-        # current_coordinates[0] = current_row
-        # current_coordinates[1] = current_column
+
 
 
 def draw_frame(canvas, start_row, start_column, text, negative=False):
