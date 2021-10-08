@@ -1,10 +1,19 @@
 import random
-import statistics
 import time
 import asyncio
 import curses
 
 from itertools import cycle
+
+
+SPACE_KEY_CODE = 32
+LEFT_KEY_CODE = 260
+RIGHT_KEY_CODE = 261
+UP_KEY_CODE = 259
+DOWN_KEY_CODE = 258
+
+TIC_TIMEOUT = 0.1
+STARS_COUNT = 1000
 
 
 def draw(canvas):
@@ -40,25 +49,36 @@ def draw(canvas):
 
 async def animate_spaceship(canvas, row, column):
 
+    with open("animation_frames/rocket_frame_1.txt", "r") as file:
+        rocket_frame_1 = file.read()
+
+    with open("animation_frames/rocket_frame_2.txt", "r") as file:
+        rocket_frame_2 = file.read()
+
     row_max, column_max = canvas.getmaxyx()
     spaceship_row, spaceship_column = get_frame_size(rocket_frame_1)
     rocket_frames = [rocket_frame_1, rocket_frame_2]
     current_coordinates = [row, column]
+    # new_row, new_column = [row, column]
     for rocket_frame in cycle(rocket_frames):
         rows_direction, columns_direction, _ = read_controls(canvas)
+        # current_row = new_row + rows_direction
+        # current_column = new_column + columns_direction
         current_row = current_coordinates[0] + rows_direction
         current_column = current_coordinates[1] + columns_direction
         if current_row+spaceship_row >= row_max \
                 or current_column+spaceship_column-1 >= column_max \
                 or current_row+1 <= 0 \
                 or current_column+1 <= 0:
-            current_row = current_coordinates[0]
-            current_column = current_coordinates[1]
+            current_coordinates = [current_row, current_column]
+            # current_row = current_coordinates[0]
+            # current_column = current_coordinates[1]
         draw_frame(canvas, current_row, current_column, rocket_frame)
         await asyncio.sleep(0)
         draw_frame(canvas, current_row, current_column, rocket_frame, negative=True)
-        current_coordinates[0] = current_row
-        current_coordinates[1] = current_column
+        current_coordinates = [current_row, current_column]
+        # current_coordinates[0] = current_row
+        # current_coordinates[1] = current_column
 
 
 def draw_frame(canvas, start_row, start_column, text, negative=False):
@@ -107,16 +127,16 @@ def read_controls(canvas):
             break
 
         if pressed_key_code == UP_KEY_CODE:
-            rows_direction = -1
+            rows_direction = -10
 
         if pressed_key_code == DOWN_KEY_CODE:
-            rows_direction = 1
+            rows_direction = 10
 
         if pressed_key_code == RIGHT_KEY_CODE:
-            columns_direction = 1
+            columns_direction = 10
 
         if pressed_key_code == LEFT_KEY_CODE:
-            columns_direction = -1
+            columns_direction = -10
 
         if pressed_key_code == SPACE_KEY_CODE:
             space_pressed = True
@@ -191,22 +211,13 @@ def get_frame_size(text):
     return rows, columns
 
 
-if __name__ == '__main__':
-    SPACE_KEY_CODE = 32
-    LEFT_KEY_CODE = 260
-    RIGHT_KEY_CODE = 261
-    UP_KEY_CODE = 259
-    DOWN_KEY_CODE = 258
-
-    TIC_TIMEOUT = 0.1
-    STARS_COUNT = 10
-
-    with open("animation_frames/rocket_frame_1.txt", "r") as file:
-        rocket_frame_1 = file.read()
-
-    with open("animation_frames/rocket_frame_2.txt", "r") as file:
-        rocket_frame_2 = file.read()
-
+def main():
     curses.update_lines_cols()
     curses.wrapper(draw)
+
+
+
+if __name__ == '__main__':
+
+    main()
 
