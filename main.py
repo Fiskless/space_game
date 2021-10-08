@@ -13,7 +13,7 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 
 TIC_TIMEOUT = 0.1
-STARS_COUNT = 1000
+STARS_COUNT = 100
 
 
 def draw(canvas):
@@ -22,11 +22,13 @@ def draw(canvas):
     canvas.nodelay(True)
     height, width = canvas.getmaxyx()
     star_symbols = ["+", "*", ".", ":"]
-    cannon_shot = fire(canvas, height/2+1, width/2+1)
+    board_half_height = height/2
+    board_half_width = width/2
+    cannon_shot = fire(canvas, board_half_height, board_half_width)
     spaceship = animate_spaceship(
         canvas,
-        height/2,
-        width/2
+        board_half_height,
+        board_half_width
     )
     coroutines = [spaceship, cannon_shot]
 
@@ -216,8 +218,6 @@ def main():
     curses.wrapper(draw)
 
 
-
 if __name__ == '__main__':
-
     main()
 
