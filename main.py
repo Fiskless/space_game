@@ -43,9 +43,9 @@ def draw(canvas):
         for coroutine in coroutines:
             try:
                 coroutine.send(None)
-                canvas.refresh()
             except StopIteration:
                 coroutines.remove(coroutine)
+        canvas.refresh()
 
 
 async def animate_spaceship(canvas, row, column):
@@ -73,7 +73,6 @@ async def animate_spaceship(canvas, row, column):
         await asyncio.sleep(0)
         draw_frame(canvas, current_row, current_column, rocket_frame, negative=True)
         current_coordinates = [current_row, current_column]
-
 
 
 def draw_frame(canvas, start_row, start_column, text, negative=False):
