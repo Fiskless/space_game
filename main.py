@@ -36,8 +36,7 @@ def draw(canvas):
         symbol = random.choice(star_symbols)
         row = random.randint(1, height - 2)
         column = random.randint(1, width - 2)
-        time_delay = random.randint(0, 5)
-        coroutines.append(blink(canvas, row, column, time_delay, symbol))
+        coroutines.append(blink(canvas, row, column, symbol))
 
     while True:
         for coroutine in coroutines:
@@ -45,6 +44,7 @@ def draw(canvas):
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
+        time.sleep(0.1)
         canvas.refresh()
 
 
@@ -64,10 +64,10 @@ async def animate_spaceship(canvas, row, column):
         rows_direction, columns_direction, _ = read_controls(canvas)
         current_row = current_coordinates[0] + rows_direction
         current_column = current_coordinates[1] + columns_direction
-        if current_row+spaceship_row >= row_max \
-                or current_column+spaceship_column-1 >= column_max \
-                or current_row+1 <= 0 \
-                or current_column+1 <= 0:
+        if current_row+spaceship_row+1 >= row_max \
+                or current_column+spaceship_column+1 >= column_max \
+                or current_row-1 <= 0 \
+                or current_column-1 <= 0:
             current_row, current_column = current_coordinates
         draw_frame(canvas, current_row, current_column, rocket_frame)
         await asyncio.sleep(0)
@@ -121,16 +121,16 @@ def read_controls(canvas):
             break
 
         if pressed_key_code == UP_KEY_CODE:
-            rows_direction = -10
+            rows_direction = -1
 
         if pressed_key_code == DOWN_KEY_CODE:
-            rows_direction = 10
+            rows_direction = 1
 
         if pressed_key_code == RIGHT_KEY_CODE:
-            columns_direction = 10
+            columns_direction = 1
 
         if pressed_key_code == LEFT_KEY_CODE:
-            columns_direction = -10
+            columns_direction = -1
 
         if pressed_key_code == SPACE_KEY_CODE:
             space_pressed = True
@@ -168,32 +168,27 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
-async def blink(canvas, row, column, time_delay, symbol='*'):
+async def blink(canvas, row, column, symbol='*'):
 
     while True:
-        time.sleep(time_delay / STARS_COUNT)
+        for _ in range(random.randint(0, 10)):
+            await asyncio.sleep(0)
+
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        await asyncio.sleep(0)
-        time.sleep(2/STARS_COUNT)
-        await asyncio.sleep(0)
+        for _ in range(20):
+            await asyncio.sleep(0)
 
-        time.sleep(time_delay / STARS_COUNT)
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
-        time.sleep(0.3/STARS_COUNT)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
 
-        time.sleep(time_delay / STARS_COUNT)
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        await asyncio.sleep(0)
-        time.sleep(0.5/STARS_COUNT)
-        await asyncio.sleep(0)
+        for _ in range(5):
+            await asyncio.sleep(0)
 
-        time.sleep(time_delay / STARS_COUNT)
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
-        time.sleep(0.3/STARS_COUNT)
-        await asyncio.sleep(0)
+        for _ in range(3):
+            await asyncio.sleep(0)
 
 
 def get_frame_size(text):
