@@ -44,8 +44,8 @@ def draw(canvas):
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
-        time.sleep(0.1)
         canvas.refresh()
+        time.sleep(TIC_TIMEOUT)
 
 
 async def animate_spaceship(canvas, row, column):
@@ -141,7 +141,7 @@ def read_controls(canvas):
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
     """Display animation of gun shot, direction and speed can be specified."""
 
-    row, column = start_row, start_column
+    row, column = start_row, start_column + 2
 
     canvas.addstr(round(row), round(column), '*')
     await asyncio.sleep(0)
