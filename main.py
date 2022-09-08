@@ -13,8 +13,9 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 
 TIC_TIMEOUT = 0.1
-STARS_COUNT = 100
+STARS_COUNT = 30
 
+COROUTINES = []
 
 def draw(canvas):
     curses.curs_set(False)
@@ -30,22 +31,62 @@ def draw(canvas):
         board_half_height,
         board_half_width
     )
-    coroutines = [spaceship, cannon_shot]
+    COROUTINES = [spaceship, cannon_shot]
 
     for _ in range(STARS_COUNT):
         symbol = random.choice(star_symbols)
         row = random.randint(1, height - 2)
         column = random.randint(1, width - 2)
-        coroutines.append(blink(canvas, row, column, symbol))
+        COROUTINES.append(blink(canvas, row, column, symbol))
+
+    for _ in range(4):
+        COROUTINES.append(fill_orbit_with_garbage(canvas, width))
 
     while True:
-        for coroutine in coroutines:
+        for coroutine in COROUTINES:
             try:
                 coroutine.send(None)
             except StopIteration:
-                coroutines.remove(coroutine)
+                COROUTINES.remove(coroutine)
         canvas.refresh()
         time.sleep(TIC_TIMEOUT)
+
+
+async def fill_orbit_with_garbage(canvas, width):
+    with open("animation_frames/trash_large.txt", "r") as file:
+        trash_large = file.read()
+
+    with open("animation_frames/trash_small.txt", "r") as file:
+        trash_small = file.read()
+
+    with open("animation_frames/trash_xl.txt", "r") as file:
+        trash_xl = file.read()
+    while True:
+        frame = random.choice([trash_xl, trash_small, trash_large])
+        rows, columns = get_frame_size(frame)
+        columns_min = int(columns/2)
+        columns_max = int(width - columns/2)
+        await fly_garbage(canvas,
+                          column=random.randint(columns_min, columns_max),
+                          garbage_frame=frame)
+        for _ in range(random.randint(0, 50)):
+            await asyncio.sleep(0)
+
+
+async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
+    """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
+    rows_number, columns_number = canvas.getmaxyx()
+
+    column = max(column, 0)
+    column = min(column, columns_number - 1)
+
+    row = 0
+
+    while row < rows_number:
+        draw_frame(canvas, row, column, garbage_frame)
+        await asyncio.sleep(0)
+        draw_frame(canvas, row, column, garbage_frame, negative=True)
+        row += speed
 
 
 async def animate_spaceship(canvas, row, column):
