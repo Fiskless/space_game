@@ -39,7 +39,7 @@ def draw(canvas):
         column = random.randint(1, width - 2)
         COROUTINES.append(blink(canvas, row, column, symbol))
 
-    for _ in range(4):
+    for _ in range(2):
         COROUTINES.append(fill_orbit_with_garbage(canvas, width))
 
     while True:
@@ -64,13 +64,12 @@ async def fill_orbit_with_garbage(canvas, width):
     while True:
         frame = random.choice([trash_xl, trash_small, trash_large])
         rows, columns = get_frame_size(frame)
-        columns_min = int(columns/2)
-        columns_max = int(width - columns/2)
+        columns_min = 0
+        columns_max = int(width - columns)
+        await sleep(random.randint(0, 30))
         await fly_garbage(canvas,
                           column=random.randint(columns_min, columns_max),
                           garbage_frame=frame)
-        for _ in range(random.randint(0, 50)):
-            await asyncio.sleep(0)
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
@@ -212,24 +211,19 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 async def blink(canvas, row, column, symbol='*'):
 
     while True:
-        for _ in range(random.randint(0, 10)):
-            await asyncio.sleep(0)
+        await sleep(random.randint(0, 10))
 
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for _ in range(20):
-            await asyncio.sleep(0)
+        await sleep(20)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for _ in range(5):
-            await asyncio.sleep(0)
+        await sleep(5)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(3)
 
 
 def get_frame_size(text):
@@ -239,6 +233,11 @@ def get_frame_size(text):
     rows = len(lines)
     columns = max([len(line) for line in lines])
     return rows, columns
+
+
+async def sleep(tics=1):
+    for _ in range(tics):
+        await asyncio.sleep(0)
 
 
 def main():
