@@ -6,6 +6,7 @@ import curses
 from itertools import cycle
 
 from curses_tools import get_frame_size, draw_frame, read_controls
+from explosion import explode
 from obstacles import Obstacle, show_obstacles
 from physics import update_speed
 
@@ -47,7 +48,7 @@ def draw(canvas):
         column = random.randint(1, width - 2)
         COROUTINES.append(blink(canvas, row, column, symbol))
 
-    for _ in range(2):
+    for _ in range(5):
         COROUTINES.append(fill_orbit_with_garbage(canvas, width))
 
     while True:
@@ -65,9 +66,15 @@ async def fill_orbit_with_garbage(canvas, width):
     trash_large = get_frame("animation_frames/trash_large.txt")
     trash_small = get_frame("animation_frames/trash_small.txt")
     trash_xl = get_frame("animation_frames/trash_xl.txt")
+    duck = get_frame('animation_frames/duck.txt'),
+    hubble = get_frame('animation_frames/hubble.txt'),
+    lamp = get_frame('animation_frames/lamp.txt')
 
     while True:
-        frame = random.choice([trash_xl, trash_small, trash_large])
+        frame = random.choice([trash_xl,
+                               trash_small,
+                               trash_large
+                               ])
         rows, columns = get_frame_size(frame)
         columns_min = 0
         columns_max = int(width - columns)
@@ -100,9 +107,20 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
         if obstacle in OBSTACLES_IN_LAST_COLLISISONS:
             OBSTACLES_IN_LAST_COLLISISONS.remove(obstacle)
             OBSTACLES.remove(obstacle)
+            await explode(canvas, row, column)
             return
 
     OBSTACLES.remove(obstacle)
+
+
+async def show_game_over(canvas):
+    """Display the end of the game."""
+    game_over_frame = get_frame('animation_frames/game_over.txt')
+    canvas_height, canvas_width = canvas.getmaxyx()
+    board_half_height, board_half_width = (canvas_height // 4, canvas_width // 4)
+    while True:
+        draw_frame(canvas, board_half_height, board_half_width, game_over_frame)
+        await asyncio.sleep(0)
 
 
 async def animate_spaceship(frames):
@@ -153,6 +171,15 @@ async def run_spaceship(canvas, row, column):
         await asyncio.sleep(0)
         draw_frame(canvas, current_row, current_column, current_frame, negative=True)
         current_coordinates = [current_row, current_column]
+
+        for obstacle in OBSTACLES:
+            if obstacle.has_collision(row,
+                                      column,
+                                      current_row,
+                                      current_column):
+                game_over_coroutine = await show_game_over(canvas)
+                COROUTINES.append(game_over_coroutine)
+                return
 
 
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
