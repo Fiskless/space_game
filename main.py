@@ -47,7 +47,6 @@ def draw(canvas):
         animate_spaceship(frames),
         run_spaceship(canvas, board_half_height, board_half_width),
         fire(canvas, board_half_height, board_half_width),
-        show_obstacles(canvas, OBSTACLES),
         count_years(),
         display_info_about_the_current_year(canvas_for_phrase),
         fill_orbit_with_garbage(canvas, width)
@@ -104,9 +103,9 @@ async def fill_orbit_with_garbage(canvas, width):
     trash_large = get_frame("animation_frames/trash_large.txt")
     trash_small = get_frame("animation_frames/trash_small.txt")
     trash_xl = get_frame("animation_frames/trash_xl.txt")
-    duck = get_frame('animation_frames/duck.txt'),
-    hubble = get_frame('animation_frames/hubble.txt'),
-    lamp = get_frame('animation_frames/lamp.txt')
+    trash_duck = get_frame('animation_frames/duck.txt')
+    trash_hubble = get_frame('animation_frames/hubble.txt')
+    trash_lamp = get_frame('animation_frames/lamp.txt')
 
     global YEAR
 
@@ -121,7 +120,10 @@ async def fill_orbit_with_garbage(canvas, width):
 
         frame = random.choice([trash_xl,
                                trash_small,
-                               trash_large
+                               trash_large,
+                               trash_duck,
+                               trash_hubble,
+                               trash_lamp
                                ])
         rows, columns = get_frame_size(frame)
         columns_min = 1
@@ -213,7 +215,8 @@ async def run_spaceship(canvas, row, column):
             current_row, current_column = current_coordinates
 
         if space_pressed and YEAR >= GUN_CREATION_YEAR:
-            COROUTINES.append(fire(canvas, current_row, current_column, rows_speed=-2))
+            fire_coroutine = await fire(canvas, current_row, current_column, rows_speed=-2)
+            COROUTINES.append(fire_coroutine)
 
         draw_frame(canvas, current_row, current_column, SPACESHIP_FRAME)
         current_frame = SPACESHIP_FRAME
