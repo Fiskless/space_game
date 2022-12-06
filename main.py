@@ -38,19 +38,30 @@ def draw(canvas):
     star_symbols = ["+", "*", ".", ":"]
     board_half_height = height/2
     board_half_width = width/2
-    frames = (
+    rocket_frames = (
         get_frame('animation_frames/rocket_frame_1.txt'),
         get_frame('animation_frames/rocket_frame_2.txt'),
     )
     canvas_for_phrase = canvas.derwin(height - 2, width // 2)
 
+    trash_frames = (
+        get_frame("animation_frames/trash_large.txt"),
+        get_frame("animation_frames/trash_small.txt"),
+        get_frame("animation_frames/trash_xl.txt"),
+        get_frame('animation_frames/duck.txt'),
+        get_frame('animation_frames/hubble.txt'),
+        get_frame('animation_frames/lamp.txt'),
+    )
+
+    game_over_frame = get_frame('animation_frames/game_over.txt')
+
     coroutines = [
-        animate_spaceship(frames),
-        run_spaceship(canvas, board_half_height, board_half_width),
+        animate_spaceship(rocket_frames),
+        run_spaceship(canvas, board_half_height, board_half_width, game_over_frame),
         fire(canvas, board_half_height, board_half_width),
         count_years(),
         display_info_about_the_current_year(canvas_for_phrase),
-        fill_orbit_with_garbage(canvas, width)
+        fill_orbit_with_garbage(canvas, width, trash_frames)
     ]
 
     for _ in range(STARS_COUNT):
@@ -99,14 +110,7 @@ async def display_info_about_the_current_year(canvas):
         await asyncio.sleep(0)
 
 
-async def fill_orbit_with_garbage(canvas, width):
-
-    trash_large = get_frame("animation_frames/trash_large.txt")
-    trash_small = get_frame("animation_frames/trash_small.txt")
-    trash_xl = get_frame("animation_frames/trash_xl.txt")
-    trash_duck = get_frame('animation_frames/duck.txt')
-    trash_hubble = get_frame('animation_frames/hubble.txt')
-    trash_lamp = get_frame('animation_frames/lamp.txt')
+async def fill_orbit_with_garbage(canvas, width, trash_frames):
 
     global YEAR
 
@@ -119,13 +123,7 @@ async def fill_orbit_with_garbage(canvas, width):
         if not garbage_frequency:
             continue
 
-        frame = random.choice([trash_xl,
-                               trash_small,
-                               trash_large,
-                               trash_duck,
-                               trash_hubble,
-                               trash_lamp
-                               ])
+        frame = random.choice(trash_frames)
         rows, columns = get_frame_size(frame)
         columns_min = 1
         columns_max = int(width - columns-1)
@@ -165,9 +163,8 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     obstacles.remove(obstacle)
 
 
-async def show_game_over(canvas):
+async def show_game_over(canvas, game_over_frame):
     """Display the end of the game."""
-    game_over_frame = get_frame('animation_frames/game_over.txt')
     canvas_height, canvas_width = canvas.getmaxyx()
     board_half_height, board_half_width = (canvas_height // 4, canvas_width // 4)
     while True:
@@ -188,7 +185,7 @@ async def animate_spaceship(frames):
             await sleep(2)
 
 
-async def run_spaceship(canvas, row, column):
+async def run_spaceship(canvas, row, column, game_over_frame):
 
     row_speed, column_speed = (0, 0)
     row_max, column_max = canvas.getmaxyx()
@@ -230,7 +227,7 @@ async def run_spaceship(canvas, row, column):
                                       current_column,
                                       spaceship_row,
                                       spaceship_column):
-                game_over_coroutine = await show_game_over(canvas)
+                game_over_coroutine = await show_game_over(canvas, game_over_frame)
                 coroutines.append(game_over_coroutine)
                 return
 
