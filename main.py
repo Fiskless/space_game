@@ -98,19 +98,10 @@ async def display_info_about_the_current_year(canvas):
     global YEAR
 
     while True:
-        try:
+        phrase = PHRASES.get(YEAR)
+        if phrase:
             draw_frame(canvas, 0, 0, f'Year - {YEAR}: {PHRASES[YEAR]}')
-        except KeyError:
-            try:
-                draw_frame(
-                    canvas,
-                    0,
-                    0,
-                    f'Year - {YEAR - 1}: {PHRASES[YEAR - 1]}',
-                    negative=True
-                )
-            except KeyError:
-                pass
+        else:
             draw_frame(canvas, 0, 0, f'Year - {YEAR}')
         await asyncio.sleep(0)
 
