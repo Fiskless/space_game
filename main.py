@@ -57,7 +57,12 @@ def draw(canvas):
 
     coroutines = [
         animate_spaceship(rocket_frames),
-        run_spaceship(canvas, board_half_height, board_half_width, game_over_frame),
+        run_spaceship(
+            canvas,
+            board_half_height,
+            board_half_width,
+            game_over_frame
+        ),
         fire(canvas, board_half_height, board_half_width),
         count_years(),
         display_info_about_the_current_year(canvas_for_phrase),
@@ -134,7 +139,7 @@ async def fill_orbit_with_garbage(canvas, width, trash_frames):
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
-    """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
+
     rows_number, columns_number = canvas.getmaxyx()
 
     column = max(column, 0)
@@ -166,9 +171,17 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
 async def show_game_over(canvas, game_over_frame):
     """Display the end of the game."""
     canvas_height, canvas_width = canvas.getmaxyx()
-    board_half_height, board_half_width = (canvas_height // 4, canvas_width // 4)
+    board_half_height, board_half_width = (
+        canvas_height // 4,
+        canvas_width // 4
+    )
     while True:
-        draw_frame(canvas, board_half_height, board_half_width, game_over_frame)
+        draw_frame(
+            canvas,
+            board_half_height,
+            board_half_width,
+            game_over_frame
+        )
         await asyncio.sleep(0)
 
 
@@ -195,7 +208,11 @@ async def run_spaceship(canvas, row, column, game_over_frame):
 
     while True:
         spaceship_row, spaceship_column = get_frame_size(spaceship_frame)
-        rows_direction, columns_direction, space_pressed = read_controls(canvas, row, column)
+        rows_direction, columns_direction, space_pressed = read_controls(
+            canvas,
+            row,
+            column
+        )
         row_speed, column_speed = update_speed(
             row_speed,
             column_speed,
@@ -206,20 +223,31 @@ async def run_spaceship(canvas, row, column, game_over_frame):
         current_row = current_coordinates[0] + row_speed
         current_column = current_coordinates[1] + column_speed
 
-        if current_row+spaceship_row+1 >= row_max \
-                or current_column+spaceship_column+1 >= column_max \
-                or current_row-1 <= 0 \
-                or current_column-1 <= 0:
+        if current_row+spaceship_row + 1 >= row_max \
+                or current_column+spaceship_column + 1 >= column_max \
+                or current_row - 1 <= 0 \
+                or current_column - 1 <= 0:
             current_row, current_column = current_coordinates
 
         if space_pressed and YEAR >= GUN_CREATION_YEAR:
-            fire_coroutine = await fire(canvas, current_row, current_column, rows_speed=-2)
+            fire_coroutine = await fire(
+                canvas,
+                current_row,
+                current_column,
+                rows_speed=-2
+            )
             coroutines.append(fire_coroutine)
 
         draw_frame(canvas, current_row, current_column, spaceship_frame)
         current_frame = spaceship_frame
         await asyncio.sleep(0)
-        draw_frame(canvas, current_row, current_column, current_frame, negative=True)
+        draw_frame(
+            canvas,
+            current_row,
+            current_column,
+            current_frame,
+            negative=True
+        )
         current_coordinates = [current_row, current_column]
 
         for obstacle in obstacles:
@@ -227,12 +255,21 @@ async def run_spaceship(canvas, row, column, game_over_frame):
                                       current_column,
                                       spaceship_row,
                                       spaceship_column):
-                game_over_coroutine = await show_game_over(canvas, game_over_frame)
+                game_over_coroutine = await show_game_over(
+                    canvas,
+                    game_over_frame
+                )
                 coroutines.append(game_over_coroutine)
                 return
 
 
-async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
+async def fire(
+        canvas,
+        start_row,
+        start_column,
+        rows_speed=-0.3,
+        columns_speed=0
+):
     """Display animation of gun shot, direction and speed can be specified."""
 
     row, column = start_row, start_column + 2
@@ -305,4 +342,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
