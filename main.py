@@ -220,8 +220,9 @@ async def run_spaceship(canvas, row, column, game_over_frame):
             columns_direction,
         )
 
-        current_row = current_coordinates[0] + row_speed
-        current_column = current_coordinates[1] + column_speed
+        current_row_init, current_column_init = current_coordinates
+        current_row = current_row_init + row_speed
+        current_column = current_column_init + column_speed
 
         if current_row+spaceship_row + 1 >= row_max \
                 or current_column+spaceship_column + 1 >= column_max \
